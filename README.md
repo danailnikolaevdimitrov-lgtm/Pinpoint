@@ -24,10 +24,11 @@ To run it locally:
 3. Use the **Live Server** extension to launch `index.html`.
 
 ## 📂 File Structure
+- `assets/` : Contains the game's logo.
+- `data/` : Contains the spatial data for country boundaries.
 - `index.html`: The core game logic and UI.
-- `bulgaria.geojson`: The spatial data for country boundaries.
-- `logo.png`: The game icon.
-- `style.css` / `script.js`: (Optional) If you choose to split the files.
+- `style.css` : The game's styling.
+- `game.js`  Contains the game's logic and renders the map.
 
 ## 🛰️ Credits
 - **Map Tiles:** [CartoDB Voyager](https://carto.com/basemaps/)

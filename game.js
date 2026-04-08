@@ -23,7 +23,7 @@ let guessMarker = null;
 // Initialize Game Borders
 async function initGame() {
     try {
-        const res = await fetch('bulgaria.geojson');
+        const res = await fetch('data/bulgaria.geojson');
         const geojson = await res.json();
 
         bulgariaFeature = turf.feature(geojson);

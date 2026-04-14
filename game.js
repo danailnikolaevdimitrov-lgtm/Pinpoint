@@ -26,7 +26,10 @@ async function initGame() {
         const res = await fetch('data/bulgaria.geojson');
         const geojson = await res.json();
 
-        bulgariaFeature = turf.feature(geojson);
+        // Support raw Geometry, Feature, or FeatureCollection (e.g. GADM format)
+        bulgariaFeature = geojson.type === 'FeatureCollection' ? geojson.features[0]
+                        : geojson.type === 'Feature'           ? geojson
+                        : turf.feature(geojson);
 
         // Extract mainland (largest polygon) — excludes Black Sea islands
         const geom = bulgariaFeature.geometry;

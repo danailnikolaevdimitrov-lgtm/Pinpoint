@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pinpoint</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="game-page">
+
+    <div id="rotate-prompt">
+        <span style="font-size:48px;">&#8635;</span>
+        <p>Rotate your device to landscape for the best experience.</p>
+    </div>
+
+    <div id="ui-panel">
+        <div id="resize-handle"></div>
+        <a href="index.html" id="back-link">&#8592; Menu</a>
+        <div id="panel-title">
+            <img src="assets/logo.png">
+            <h1>Pinpoint</h1>
+        </div>
+        <div class="stats">
+            <div>Round: <span id="round-display">1</span> / <span id="max-rounds-display">10</span></div>
+            <div id="timer">2:00</div>
+        </div>
+        <button id="confirm-btn" disabled>Lock In Guess</button>
+
+        <table id="history-table">
+            <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>Distance to Target</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+            </tbody>
+        </table>
+
+        <div id="result-panel" style="display:none;">
+            <h2 id="end-title"></h2>
+            <p id="end-message"></p>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+                <button id="play-again-btn" onclick="location.reload()" style="flex:1;">Play Again</button>
+                <a href="index.html" style="flex:1; display:flex; align-items:center; justify-content:center; padding:10px; font-size:13px; font-weight:600; background:#f0f0f0; color:#333; border-radius:8px; text-decoration:none; transition:background 0.2s;">Menu</a>
+            </div>
+        </div>
+
+        <div id="live-stats">
+            <div class="stat-title">Session Stats</div>
+            <div class="stat-row">
+                <span class="stat-label">Best Approach</span>
+                <span class="stat-value" id="stat-best">&mdash;</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Best in Round</span>
+                <span class="stat-value" id="stat-best-round">&mdash;</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Average Distance</span>
+                <span class="stat-value" id="stat-avg">&mdash;</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Guesses Used</span>
+                <span class="stat-value" id="stat-count">0 / 10</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="loading-screen" class="overlay">
+            <h2>Drawing Borders...</h2>
+            <p>Fetching exact country coordinates</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

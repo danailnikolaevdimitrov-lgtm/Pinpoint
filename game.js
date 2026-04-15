@@ -1,10 +1,24 @@
-// Game State
+// Game State — load settings saved from the menu screen
+const _cfg       = JSON.parse(sessionStorage.getItem('pinpoint_settings') || 'null');
+const maxRounds  = _cfg ? _cfg.rounds : 10;
+const timerDuration = _cfg ? _cfg.time   : 120;
+const winRadius  = _cfg ? _cfg.radius : 1.0;
+
 let currentRound = 1;
-const maxRounds = 10;
-let targetLocation = {};
+// Target is stored XOR-encoded with a per-session random key — never readable as plain coordinates
+const _target = (() => {
+    const _k = (Math.random() * 0xFFFFFFFF) >>> 0;
+    let _a = 0, _b = 0;
+    const _e = n => ((n * 1e7) | 0) ^ _k;
+    const _d = n => ((n ^ _k) | 0) / 1e7;
+    return {
+        set(lat, lng) { _a = _e(lat); _b = _e(lng); },
+        get() { return { lat: _d(_a), lng: _d(_b) }; }
+    };
+})();
 let currentGuess = null;
 let lastGuess = null;
-let timerSeconds = 120;
+let timerSeconds = timerDuration;
 let timerInterval;
 let bulgariaFeature = null;
 let bulgariaMainland = null;
@@ -58,6 +72,11 @@ async function initGame() {
             interactive: false
         }).addTo(map);
 
+        // Apply dynamic settings to the UI
+        const mrEl = document.getElementById('max-rounds-display');
+        if (mrEl) mrEl.textContent = maxRounds;
+        document.getElementById('stat-count').innerText = '0 / ' + maxRounds;
+
         document.getElementById('loading-screen').style.display = 'none';
         generateTarget();
         startTimer();
@@ -79,11 +98,10 @@ function generateTarget() {
         const pt = turf.point([lng, lat]);
 
         if (turf.booleanPointInPolygon(pt, bulgariaMainland)) {
-            targetLocation = { lat, lng };
+            _target.set(lat, lng);
             valid = true;
         }
     }
-    console.log('Cheat code: Target is at', targetLocation);
 }
 
 // Haversine formula
@@ -133,7 +151,7 @@ map.on('click', function (e) {
 // Timer Logic
 function startTimer() {
     clearInterval(timerInterval);
-    timerSeconds = 120;
+    timerSeconds = timerDuration;
     updateTimerDisplay();
 
     timerInterval = setInterval(() => {
@@ -183,7 +201,8 @@ function processGuess() {
     clearInterval(timerInterval);
     lastGuess = { ...currentGuess };
 
-    const distance = calculateDistance(currentGuess.lat, currentGuess.lng, targetLocation.lat, targetLocation.lng);
+    const _t = _target.get();
+    const distance = calculateDistance(currentGuess.lat, currentGuess.lng, _t.lat, _t.lng);
 
     L.marker([currentGuess.lat, currentGuess.lng], { icon: createGuessIcon(currentRound), interactive: false }).addTo(map);
     if (guessMarker) { map.removeLayer(guessMarker); guessMarker = null; }
@@ -193,7 +212,7 @@ function processGuess() {
     document.getElementById('history-body').appendChild(row);
     updateLiveStats(distance);
 
-    if (distance <= 1.0) {
+    if (distance <= winRadius) {
         endGame(true, distance);
         return;
     }
@@ -234,8 +253,9 @@ function endGame(won, finalDistance) {
         message.innerText = `The target was ${finalDistance.toFixed(2)} km away from your final guess.`;
     }
 
-    L.marker([targetLocation.lat, targetLocation.lng], { icon: createTargetIcon() }).addTo(map);
-    map.flyTo([targetLocation.lat, targetLocation.lng], 12);
+    const _r = _target.get();
+    L.marker([_r.lat, _r.lng], { icon: createTargetIcon() }).addTo(map);
+    map.flyTo([_r.lat, _r.lng], 12);
 }
 
 // Live session stats updater
@@ -247,7 +267,7 @@ function updateLiveStats(distance) {
     document.getElementById('stat-best').innerText = best.toFixed(2) + ' km';
     document.getElementById('stat-best-round').innerText = 'Round ' + bestRound;
     document.getElementById('stat-avg').innerText = avg.toFixed(2) + ' km';
-    document.getElementById('stat-count').innerText = allDistances.length + ' / 10';
+    document.getElementById('stat-count').innerText = allDistances.length + ' / ' + maxRounds;
 }
 
 // Resizable panel

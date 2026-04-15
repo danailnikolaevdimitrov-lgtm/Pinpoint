@@ -2,74 +2,148 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Pinpoint</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="menu-page">
 
-    <div id="ui-panel">
-        <div id="resize-handle"></div>
-        <div id="panel-title">
-            <img src="assets/logo.png">
+<div class="bg"></div>
+
+<div class="page">
+
+    <!-- ── Hero ── -->
+    <div class="hero anim anim-d1">
+        <div class="hero-title-row">
+            <img src="assets/logo.png" class="hero-logo" alt="Pinpoint">
             <h1>Pinpoint</h1>
         </div>
-        <div class="stats">
-            <div>Round: <span id="round-display">1</span> / 10</div>
-            <div id="timer">2:00</div>
+        <p>A secret location is hidden somewhere in Bulgaria. No hints — just the border and your instincts. Navigate blind, guess by guess, and close in before time runs out.</p>
+    </div>
+
+    <!-- ── How to Play ── -->
+    <div class="section anim anim-d2">
+        <div class="section-label">How to Play</div>
+        <div class="tutorial-grid">
+
+            <div class="info-card">
+                <div class="info-icon">🎯</div>
+                <h3>The Target</h3>
+                <p>A secret location is hidden <strong>somewhere in Bulgaria</strong>. Your mission is to find it.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">📍</div>
+                <h3>Place Your Pin</h3>
+                <p>Click anywhere inside the Bulgarian border. Clicks outside are <strong>ignored</strong>.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">🔒</div>
+                <h3>Lock In</h3>
+                <p>Press <strong>Lock In Guess</strong> to confirm. You will see how many km off you were — use it to close in.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">⭐</div>
+                <h3>Victory</h3>
+                <p>Land within the <strong>winning radius</strong> to win. Rounds are limited — every guess counts.</p>
+            </div>
+
         </div>
-        <button id="confirm-btn" disabled>Lock In Guess</button>
+    </div>
 
-        <table id="history-table">
-            <thead>
-                <tr>
-                    <th>Round</th>
-                    <th>Distance to Target</th>
-                </tr>
-            </thead>
-            <tbody id="history-body">
-            </tbody>
-        </table>
+    <!-- ── Difficulty ── -->
+    <div class="section anim anim-d3">
+        <div class="section-label">Difficulty</div>
+        <div class="difficulty-grid">
 
-        <div id="result-panel" style="display:none;">
-            <h2 id="end-title"></h2>
-            <p id="end-message"></p>
-            <button id="play-again-btn" onclick="location.reload()">Play Again</button>
+            <div class="diff-card" data-rounds="15" data-time="180" data-radius="5"
+                 style="--dc:#5cb85c; --dg:rgba(92,184,92,0.35);">
+                <div class="diff-badge">🌿</div>
+                <div class="diff-name">Tourist</div>
+                <div class="diff-details">
+                    15 guesses<br>3:00 / round<br>5 km radius
+                </div>
+            </div>
+
+            <div class="diff-card selected" data-rounds="10" data-time="120" data-radius="1"
+                 style="--dc:#0275d8; --dg:rgba(2,117,216,0.42);">
+                <div class="diff-badge">🗺️</div>
+                <div class="diff-name">Navigator</div>
+                <div class="diff-details">
+                    10 guesses<br>2:00 / round<br>1 km radius
+                </div>
+                <div class="diff-rec">Recommended</div>
+            </div>
+
+            <div class="diff-card" data-rounds="6" data-time="60" data-radius="0.7"
+                 style="--dc:#d9534f; --dg:rgba(217,83,79,0.4);">
+                <div class="diff-badge">⚡</div>
+                <div class="diff-name">Legend</div>
+                <div class="diff-details">
+                    6 guesses<br>1:00 / round<br>0.7 km radius
+                </div>
+            </div>
+
         </div>
 
-        <div id="live-stats">
-            <div class="stat-title">Session Stats</div>
-            <div class="stat-row">
-                <span class="stat-label">Best Approach</span>
-                <span class="stat-value" id="stat-best">&mdash;</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Best in Round</span>
-                <span class="stat-value" id="stat-best-round">&mdash;</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Average Distance</span>
-                <span class="stat-value" id="stat-avg">&mdash;</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Guesses Used</span>
-                <span class="stat-value" id="stat-count">0 / 10</span>
+        <!-- Custom toggle -->
+        <div class="custom-toggle" id="customToggle">
+            <span class="toggle-arrow">&#9654;</span>
+            <span>Customize settings</span>
+        </div>
+
+        <div class="custom-panel" id="customPanel">
+            <div class="custom-inner">
+
+                <div class="slider-row">
+                    <div class="slider-label-row">
+                        <span class="slider-label">Number of Guesses</span>
+                        <span class="slider-val" id="val-rounds">10</span>
+                    </div>
+                    <input type="range" id="sl-rounds" min="3" max="15" value="10" step="1">
+                    <div class="slider-ends"><span>3</span><span>15</span></div>
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-label-row">
+                        <span class="slider-label">Time per Round</span>
+                        <span class="slider-val" id="val-time">2:00</span>
+                    </div>
+                    <input type="range" id="sl-time" min="20" max="180" value="120" step="5">
+                    <div class="slider-ends"><span>0:20</span><span>3:00</span></div>
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-label-row">
+                        <span class="slider-label">Winning Radius</span>
+                        <span class="slider-val" id="val-radius">1.0 km</span>
+                    </div>
+                    <input type="range" id="sl-radius" min="0.2" max="5" value="1" step="0.1">
+                    <div class="slider-ends"><span>0.2 km</span><span>5 km</span></div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <div id="map-container">
-        <div id="map"></div>
-        <div id="loading-screen" class="overlay">
-            <h2>Drawing Borders...</h2>
-            <p>Fetching exact country coordinates</p>
-        </div>
+    <!-- ── Start ── -->
+    <div class="start-wrap anim anim-d4">
+        <button class="start-btn" id="startBtn">
+            <span class="play-icon">&#9654;</span> Start Game
+        </button>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-    <script src="game.js"></script>
+    <div class="footer">Pinpoint &mdash; Bulgaria Geography Challenge</div>
+
+</div>
+
+<script src="menu.js"></script>
+
 </body>
 </html>

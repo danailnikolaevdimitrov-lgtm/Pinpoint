@@ -17,10 +17,12 @@
 
     <div id="ui-panel">
         <div id="resize-handle"></div>
-        <a href="index.html" id="back-link">&#8592; Menu</a>
-        <div id="panel-title">
-            <img src="assets/logo.png">
-            <h1>Pinpoint</h1>
+        <div id="top-bar">
+            <a href="index.html" id="back-link">&#8592; Menu</a>
+            <div id="panel-title">
+                <img src="assets/logo.png">
+                <h1>Pinpoint</h1>
+            </div>
         </div>
         <div class="stats">
             <div>Round: <span id="round-display">1</span> / <span id="max-rounds-display">10</span></div>
@@ -77,8 +79,54 @@
         </div>
     </div>
 
+    <button id="fullscreen-btn" title="Toggle fullscreen">&#x26F6;</button>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="game.js"></script>
+    <script>
+        // ── Fullscreen + landscape lock ──────────────────────────────
+        (function () {
+            const fsBtn = document.getElementById('fullscreen-btn');
+
+            function updateIcon() {
+                const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                fsBtn.innerHTML = inFs ? '&#x2715;' : '&#x26F6;';
+                fsBtn.title = inFs ? 'Exit fullscreen' : 'Enter fullscreen';
+            }
+
+            async function toggleFullscreen() {
+                try {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        const el = document.documentElement;
+                        if (el.requestFullscreen) {
+                            await el.requestFullscreen();
+                        } else if (el.webkitRequestFullscreen) {
+                            await el.webkitRequestFullscreen();
+                        }
+                        // Lock orientation to landscape where supported (Android Chrome)
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(function () {});
+                        }
+                    } else {
+                        if (document.exitFullscreen) {
+                            await document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) {
+                            await document.webkitExitFullscreen();
+                        }
+                    }
+                } catch (e) { /* fullscreen blocked (iframe / permissions) — ignore */ }
+            }
+
+            fsBtn.addEventListener('click', toggleFullscreen);
+            document.addEventListener('fullscreenchange', updateIcon);
+            document.addEventListener('webkitfullscreenchange', updateIcon);
+
+            // Attempt landscape lock on load for Android Chrome (no fullscreen needed)
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function () {});
+            }
+        }());
+    </script>
 </body>
 </html>

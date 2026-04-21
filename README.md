@@ -24,11 +24,13 @@ To run it locally:
 3. Use the **Live Server** extension to launch `index.html`.
 
 ## 📂 File Structure
-- `assets/` : Contains the game's logo.
+- `assets/` : Contains the game's logo and main menu background.
 - `data/` : Contains the spatial data for country boundaries.
-- `index.html`: The core game logic and UI.
+- `game.html` : The core game logic and UI.
+- `game.js` : Contains the game's logic and renders the map.
+- `index.html` : The game's main menu.
+- `menu.js` : The game's difficulty logic.
 - `style.css` : The game's styling.
-- `game.js`  Contains the game's logic and renders the map.
 
 ## 🛰️ Credits
 - **Map Tiles:** [CartoDB Voyager](https://carto.com/basemaps/)

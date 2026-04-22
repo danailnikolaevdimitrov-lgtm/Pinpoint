@@ -4,6 +4,23 @@ const maxRounds  = _cfg ? _cfg.rounds : 10;
 const timerDuration = _cfg ? _cfg.time   : 120;
 const winRadius  = _cfg ? _cfg.radius : 1.0;
 
+// Detect whether this is one of the 3 official presets (not custom)
+// Official presets: Tourist 15/180/5, Navigator 10/120/1, Legend 6/60/0.7
+const OFFICIAL_PRESETS = {
+    tourist:   { rounds: 15, time: 180, radius: 5   },
+    navigator: { rounds: 10, time: 120, radius: 1   },
+    legend:    { rounds: 6,  time: 60,  radius: 0.7 }
+};
+function detectDifficulty(cfg) {
+    if (!cfg) return null;
+    for (const [name, p] of Object.entries(OFFICIAL_PRESETS)) {
+        if (cfg.rounds === p.rounds && cfg.time === p.time && cfg.radius === p.radius) return name;
+    }
+    return null; // custom — not tracked
+}
+const officialDifficulty = detectDifficulty(_cfg); // null = custom game
+const gameStartedAt = new Date().toISOString();
+
 let currentRound = 1;
 // Target is stored XOR-encoded with a per-session random key — never readable as plain coordinates
 const _target = (() => {
@@ -230,8 +247,52 @@ function processGuess() {
 
 document.getElementById('confirm-btn').addEventListener('click', processGuess);
 
+// Submit game result to Supabase
+async function submitResult(won, finalDistance) {
+    // Skip if custom difficulty — not tracked
+    if (!officialDifficulty) return;
+
+    // Skip if not logged in — show guest save prompt for official games
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) {
+        const panel = document.getElementById('result-panel');
+        if (panel && !panel.querySelector('.guest-save-prompt')) {
+            const p = document.createElement('p');
+            p.className = 'guest-save-prompt';
+            p.innerHTML = `<a href="auth.html?from=game.html">Sign in</a> to save your result.`;
+            panel.appendChild(p);
+        }
+        return;
+    }
+
+    // ── Server-side-style validation before sending ──────────
+    const maxForDiff = OFFICIAL_PRESETS[officialDifficulty].rounds;
+    if (currentRound < 1 || currentRound > maxForDiff) return; // impossible attempt count
+    if (won && (finalDistance <= 0 || finalDistance > winRadius)) return; // impossible winning distance
+
+    const record = {
+        user_id:              session.user.id,
+        difficulty:           officialDifficulty,
+        won:                  won,
+        winning_distance_km:  won ? parseFloat(finalDistance.toFixed(4)) : null,
+        attempts_used:        currentRound,
+        started_at:           gameStartedAt,
+        completed_at:         new Date().toISOString()
+    };
+
+    // Plausibility: game must have taken at least (attempts * 3) seconds
+    const elapsed = (new Date(record.completed_at) - new Date(record.started_at)) / 1000;
+    if (elapsed < currentRound * 3) return; // too fast to be real
+
+    const { error } = await db.from('games').insert(record);
+    if (error) console.warn('Result not saved:', error.message);
+}
+
 function endGame(won, finalDistance) {
     clearInterval(timerInterval);
+
+    // Submit result to Supabase (only official difficulties, only logged-in users)
+    submitResult(won, finalDistance);
 
     document.getElementById('confirm-btn').style.display = 'none';
     document.querySelector('.stats').style.display = 'none';
